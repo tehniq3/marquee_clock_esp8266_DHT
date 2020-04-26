@@ -8,3 +8,6 @@ other info: https://nicuflorica.blogspot.com/2019/11/cablaj-universal-pentru-cea
 
 Schematic (not used RTC module)
 ![base schematic](https://4.bp.blogspot.com/-OyIs9oE8in8/XK9-Zm2RxzI/AAAAAAAAZCg/a2TihedTq501hoK6mNFIUM-Fo1CypZZcgCLcBGAs/s1600/ESP8266_LED_Matrix_Clock_DHT_LDR.gif)
+
+
+[![Watch the video](https://img.youtube.com/vi/X9xGOwg01z4/maxresdefault.jpg)](https://youtu.be/X9xGOwg01z4)
