@@ -14,7 +14,7 @@
 
 WiFiClient client;
 
-#define NUM_MAX 6  // or 4
+#define NUM_MAX 6  // or 4 (number of 8x8 led display module)
 #define ROTATE 0 // 0, 90 or 270 degree
 
 // for NodeMCU 1.0
@@ -52,8 +52,8 @@ char UmiLabel[] = "    umiditate:  "; // Fixxed text
 
 //modifica test ip
 
-const char ssid[] = "bbk2";  //  your network SSID (name)
-const char password[] = "internet2";       // your network password
+const char ssid[] = "nume_retea_WiFI";  //  your network SSID (name)
+const char password[] = "parola_retea_WiFi";  // your network password
 
 // Localized Months and DoWeek
 
