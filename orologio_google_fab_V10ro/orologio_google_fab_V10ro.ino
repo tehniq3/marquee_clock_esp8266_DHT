@@ -222,7 +222,7 @@ contrast(); // //autobrightness
   }
 
   if(updCnt<=0) { // every 10 scrolls, ~450s=7.5m
-    updCnt = 2;
+    updCnt = 10;
     Serial.println("Getting data ...");
     // clr();
     printStringWithShift("!" , viteza);
