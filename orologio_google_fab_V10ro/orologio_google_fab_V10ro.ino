@@ -6,7 +6,7 @@
 //v.9 - corretta ora legale
 // receiced from Fabrizio Croce - fabrizio_croce@hotmail.com
 // small changes by Nicu FLORICA (niq_ro) - nicu.florica@gmail.com
-//v.10 - automatic brightness amd some small changes in sisplay style (add degree sign, etc)
+//v.10 - automatic brightness amd some small changes in sisplay style (add degree sign, etc) + right day & date for local zone by niq_ro
 
 #include "Arduino.h"
 #include <ArduinoJson.h>
@@ -73,7 +73,7 @@ void setup()
 
   initMAX7219(); //
   sendCmdAll(CMD_SHUTDOWN,1); //
-  sendCmdAll(CMD_INTENSITY,0); // brightness from 0 to 7
+  sendCmdAll(CMD_INTENSITY,0); // brightness from 0 to 4
    
   Serial.print("Connecting to ");
   Serial.println(ssid);
@@ -96,6 +96,8 @@ void setup()
   delay(1000);//
 
   // DHT
+  
+
 dht.begin();
 temperature = dht.readTemperature();
 umidity = dht.readHumidity();
@@ -150,6 +152,18 @@ String monthloc;
 
 void loop()
 {
+  if(updCnt<=0) { // every 10 scrolls, ~450s=7.5m
+    updCnt = 60;
+    Serial.println("Getting data ...");
+    // clr();
+    printStringWithShift("..." , viteza);
+    getTime();
+    Serial.println("Data loaded");
+    clkTime = millis();
+
+ //  contrast(); // //autobrightness
+  }
+
   contrast(); // //autobrightness 
   
 //print data
@@ -158,10 +172,8 @@ void loop()
    // Reading temperature or humidity 
     int umidity = dht.readHumidity();
     float temperature = dht.readTemperature(); 
-
-contrast(); // //autobrightness     
+    
    printStringWithShift("            " , viteza);       //Space before
-contrast(); // //autobrightness    
    printStringWithShift(date.c_str() , viteza);         //data1
 /*
 // Reading temperature or humidity 
@@ -177,7 +189,6 @@ contrast(); // //autobrightness
     
     int t2 = 10*temperature; 
 
-contrast(); // //autobrightness 
 // print temperature
 
 // http://www.arduino-hacks.com/converting-integer-to-character-vice-versa/
@@ -194,9 +205,10 @@ printStringWithShift("+", viteza);
 printStringWithShift(c, viteza);
 printStringWithShift(",", viteza);
 printStringWithShift(d, viteza);
-printStringWithShift(" ~C", viteza);  // $ is replaced by degree sign
+//printStringWithShift(convertPolish(155), viteza);
+printStringWithShift(" $C", viteza);
+//delay(2000);
 
-contrast(); // //autobrightness 
 // print umidity
 
 // http://www.arduino-hacks.com/converting-integer-to-character-vice-versa/
@@ -207,12 +219,11 @@ str.toCharArray(b,3);
 printStringWithShift(UmiLabel, viteza);  // Send scrolling Text
 printStringWithShift(b , viteza);
 printStringWithShift(" %", viteza);
-
-contrast(); // //autobrightness 
+//delay(2000);
  
    printStringWithShift("                 " , viteza);  //Space after
    delay(200);                          
-contrast(); // //autobrightness       
+      
     updCnt--;
     clkTime = millis();
   }
@@ -220,24 +231,13 @@ contrast(); // //autobrightness
     dotTime = millis();
     dots = !dots;
   }
-
-  if(updCnt<=0) { // every 10 scrolls, ~450s=7.5m
-    updCnt = 10;
-    Serial.println("Getting data ...");
-    // clr();
-    printStringWithShift("!" , viteza);
-    getTime();
-    Serial.println("Data loaded");
-    clkTime = millis();
-  }
-  
   updateTime(); // get time
 
 // print clock
   showAnimClock();
   //showSimpleClock();
   
-} // end main loop
+}
 
 // =======================================================================
 
@@ -346,7 +346,6 @@ unsigned char convertPolish(unsigned char _c)
     dualChar = c;
     return 0;
   }
-  /*
   if(dualChar) {
     switch(_c) {
       case 133: c = 1+'~'; break; // 'ą'
@@ -393,7 +392,6 @@ unsigned char convertPolish(unsigned char _c)
     case 175: c = 18+'~'; break;
     default:  break;
   }
-  */
   return c;
 }
 
@@ -478,7 +476,7 @@ void getTime()
       Serial.println(year); //check
       Serial.print("Giorno Sett: " );
       Serial.println(dayOfWeek); //check
-
+/*
       monthloc = M_arr[month]; // localize month
       dayloc = Dow_arr[dayOfWeek]; // localize DayOfWeek
 
@@ -488,7 +486,7 @@ void getTime()
       date = dayloc + ",   " + day + "-" + monthloc + "-" + year;
       Serial.print("Data: " );
       Serial.println(date); //check
-
+*/
       
  //   decodeDate(date); //data3
       h = line.substring(23, 25).toInt();
@@ -505,11 +503,37 @@ void getTime()
        
       Serial.print("Summertime: ");
       Serial.println(summerTime);
-      
+
+
+    unsigned short MoZiff[12] = { 0, 3, 3, 6, 1, 4, 6, 2, 5, 0, 3, 5 }; //Monatsziffer
+    unsigned short Tage_Monat[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
         if(h+utcOffset+summerTime>23) {
-          if(++day>31) { day=1; month++; };  // needs better patch
-          if(++dayOfWeek>7) dayOfWeek=1; 
+   //       if(++day>31) { day=1; month++; };  // needs better patch
+   //       if(++dayOfWeek>7) dayOfWeek=1; 
+       h = h - 24;
+       dayOfWeek = dayOfWeek +1;
+       if(dayOfWeek>7) dayOfWeek=1;
+        day = day + 1;
+        if (day > Tage_Monat[month - 1]) {
+            day = 1;
+            month = month + 1;
+            if (month > 12) {
+                month = 1;
+                year = year + 1;
+            }
+        }    
         }
+
+      monthloc = M_arr[month]; // localize month
+      dayloc = Dow_arr[dayOfWeek]; // localize DayOfWeek
+
+  //    Serial.println(dayloc); //check
+  //    Serial.println(monthloc); //check
+
+      date = dayloc + ",   " + day + "-" + monthloc + "-" + year;
+      Serial.print("Data: " );
+      Serial.println(date); //check
+     
       localMillisAtUpdate = millis();
       localEpoc = (h * 60 * 60 + m * 60 + s);
     }
@@ -584,15 +608,10 @@ void updateTime()
 
 void contrast()
 {
- lumina = analogRead(A0);          //read light level
-     lumina = map(lumina, 0, 1023, 0, 7); //mapping value 
-      if (lumina0 != lumina)
-      {
-      sendCmdAll(CMD_INTENSITY, lumina);
-      Serial.print("brightness = ");
-      Serial.print(lumina);
-      Serial.println (" / 7");
-      lumina0 = lumina;      
-      Serial.println ("change brightness...");
-      }
+  int lumina = analogRead(A0);         //autobrightness (+3.3V ---|==10k==|---A0---|GND (niq_ro)
+    lumina = map(lumina, 0, 1023, 0, 4); //broghtness 0-4
+    Serial.print("brightness = ");
+    Serial.print(lumina);
+    Serial.println (" / 4");
+    sendCmdAll(CMD_INTENSITY, lumina);
 }
